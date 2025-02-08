@@ -22,13 +22,10 @@ app.post('/api/save', async (req, res) => {
       columnsOrder: req.body.columnsOrder || []
     };
 
-    // Используем patch вместо set
-    await edge.patch([
-      {
-        key: 'appData',
-        value: data
-      }
-    ]);
+    // Используем set для сохранения
+    await edge.upsert({
+      'appData': data
+    });
     
     console.log('Данные сохранены');
     res.json({ success: true });
