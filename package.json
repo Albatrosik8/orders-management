@@ -8,8 +8,7 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "@vercel/kv": "^0.2.4",
-    "compression": "^1.7.5",
+    "@vercel/edge-config": "^0.1.11",
     "express": "^4.17.1",
     "helmet": "^8.0.0"
   },
