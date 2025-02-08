@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Система управления заявками">
+    <meta name="theme-color" content="#ffffff">
+    <title>Таблица заявок</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Добавляем favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Таблица заявок</h1>
+            <button id="themeToggle" class="btn theme-toggle" onclick="toggleTheme()">
+                🌙
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Фильтры -->
+        <section class="filter-row" aria-label="Фильтры и действия">
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="filterStatus">Фильтр по статусу:</label>
+                    <select id="filterStatus" onchange="applyFilters()" aria-label="Выберите статус">
+                        <option value="">Все статусы</option>
+                        <option value="🟡 В процессе">🟡 В процессе</option>
+                        <option value="🟢 Завершен">🟢 Завершен</option>
+                        <option value="🔴 Отменен">🔴 Отменен</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="filterPriority">Фильтр по приоритету:</label>
+                    <select id="filterPriority" onchange="applyFilters()" aria-label="Выберите приоритет">
+                        <option value="">Все приоритеты</option>
+                        <option value="Высокий">Высокий</option>
+                        <option value="Средний">Средний</option>
+                        <option value="Низкий">Низкий</option>
+                    </select>
+                </div>
+
+                <div class="search-section">
+                    <div class="search-input-wrapper">
+                        <input type="search" 
+                               id="searchInput" 
+                               oninput="window.ordersManager.applySearch()" 
+                               placeholder="Поиск..." 
+                               aria-label="Поиск по таблице">
+                        <button type="button" 
+                                class="btn clear-search" 
+                                onclick="window.ordersManager.clearSearch()"
+                                aria-label="Очистить поиск">
+                            ✕
+                        </button>
+                    </div>
+                    <span id="searchCounter" class="search-counter"></span>
+                </div>
+
+                <div class="filter-group">
+                    <button type="button" onclick="window.ordersManager.resetFilters()" class="btn secondary">
+                        🔄 Сбросить фильтры
+                    </button>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button" onclick="toggleForm()" class="btn primary">
+                    <svg class="icon" aria-hidden="true"><!-- Иконка плюса --></svg>
+                    Добавить заявку
+                </button>
+                <button type="button" onclick="exportToExcel()" class="btn secondary">
+                    <svg class="icon" aria-hidden="true"><!-- Иконка экспорта --></svg>
+                    Экспорт в Excel
+                </button>
+                <button type="button" onclick="saveToFile()" class="btn secondary">
+                    💾 Сохранить данные
+                </button>
+                <input type="file" 
+                       id="loadDataFile" 
+                       accept=".json" 
+                       style="display: none" 
+                       onchange="loadFromFile(this)">
+                <button type="button" onclick="document.getElementById('loadDataFile').click()" class="btn secondary">
+                    📂 Загрузить данные
+                </button>
+            </div>
+        </section>
+
+        <!-- Таблица -->
+        <section class="table-container" aria-label="Таблица заявок">
+            <table id="ordersTable" class="responsive-table">
+                <caption class="sr-only">Список всех заявок</caption>
+                <thead>
+                    <tr class="header-row">
+                        <th onclick="sortTable(0)" draggable="true" data-original-index="0">П/П</th>
+                        <th onclick="sortTable(1)" draggable="true" data-original-index="1">Статус заказа</th>
+                        <th onclick="sortTable(2)" draggable="true" data-original-index="2">Автор заявки</th>
+                        <th onclick="sortTable(3)" draggable="true" data-original-index="3">Материал</th>
+                        <th onclick="sortTable(4)" draggable="true" data-original-index="4">Приоритет</th>
+                        <th onclick="sortTable(5)" draggable="true" data-original-index="5">Количество</th>
+                        <th onclick="sortTable(6)" draggable="true" data-original-index="6">Ед. изм.</th>
+                        <th onclick="sortTable(7)" draggable="true" data-original-index="7">Категория материала</th>
+                        <th onclick="sortTable(8)" draggable="true" data-original-index="8">Поставщик</th>
+                        <th onclick="sortTable(9)" draggable="true" data-original-index="9">Телефон поставщика</th>
+                        <th onclick="sortTable(10)" draggable="true" data-original-index="10">Email поставщика</th>
+                        <th onclick="sortTable(11)" draggable="true" data-original-index="11">Дата заказа</th>
+                        <th onclick="sortTable(12)" draggable="true" data-original-index="12">Дата оплаты</th>
+                        <th onclick="sortTable(13)" draggable="true" data-original-index="13">Дата привоза</th>
+                        <th onclick="sortTable(14)" draggable="true" data-original-index="14">Вид доставки</th>
+                        <th onclick="sortTable(15)" draggable="true" data-original-index="15">Сумма заказа</th>
+                        <th onclick="sortTable(16)" draggable="true" data-original-index="16">Состояние оплаты</th>
+                        <th onclick="sortTable(17)" draggable="true" data-original-index="17">Примечания</th>
+                        <th onclick="sortTable(18)" draggable="true" data-original-index="18">Ответственное лицо</th>
+                        <th onclick="sortTable(19)" draggable="true" data-original-index="19">Ссылка на материалы</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        <!-- Форма -->
+        <dialog id="addOrderForm" class="modal">
+            <form id="orderForm" method="dialog" class="form-grid">
+                <header class="modal-header">
+                    <h2 id="formTitle">Добавить новую заявку</h2>
+                    <button type="button" onclick="toggleForm()" class="close-btn" aria-label="Закрыть">×</button>
+                </header>
+
+                <div class="form-content">
+                    <input type="hidden" id="editIndex" value="-1">
+
+                    <div class="form-group">
+                        <label for="author">Автор заявки:</label>
+                        <input type="text" id="author">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="material">Материал:</label>
+                        <input type="text" id="material" list="materials">
+                        <datalist id="materials">
+                            <!-- Здесь можно добавить список частых материалов -->
+                        </datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quantity">Количество:</label>
+                        <input type="number" id="quantity">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="unit">Ед. изм.:</label>
+                        <input type="text" id="unit">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Категория материала:</label>
+                        <input type="text" id="category">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="supplier">Поставщик:</label>
+                        <input type="text" id="supplier">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Адрес поставщика:</label>
+                        <input type="text" id="address">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Телефон поставщика:</label>
+                        <input type="tel" id="phone" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email поставщика:</label>
+                        <input type="email" id="email">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Статус заказа:</label>
+                        <select id="status">
+                            <option value="🟡 В процессе">В процессе</option>
+                            <option value="🟢 Завершен">Завершен</option>
+                            <option value="🔴 Отменен">Отменен</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="orderDate">Дата заказа:</label>
+                        <input type="date" id="orderDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="paymentDeadline">Срок оплаты:</label>
+                        <input type="date" id="paymentDeadline">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="paymentDate">Дата оплаты:</label>
+                        <input type="date" id="paymentDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deliveryDate">Дата привоза:</label>
+                        <input type="date" id="deliveryDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deliveryType">Вид доставки:</label>
+                        <select id="deliveryType">
+                            <option value="Самовывоз">Самовывоз</option>
+                            <option value="Доставка">Доставка</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount">Сумма заказа:</label>
+                        <input type="number" id="amount">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="paymentStatus">Состояние оплаты:</label>
+                        <select id="paymentStatus">
+                            <option value="Оплачено">Оплачено</option>
+                            <option value="Не оплачено">Не оплачено</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Примечания:</label>
+                        <textarea id="notes"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="responsible">Ответственное лицо:</label>
+                        <input type="text" id="responsible">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="link">Ссылка на материалы:</label>
+                        <input type="url" id="link">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="priority">Приоритет:</label>
+                        <select id="priority">
+                            <option value="Высокий">Высокий</option>
+                            <option value="Средний">Средний</option>
+                            <option value="Низкий">Низкий</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary">Сохранить</button>
+                        <button type="button" class="btn secondary" onclick="toggleForm()">Отмена</button>
+                    </div>
+                </div>
+            </form>
+        </dialog>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Система управления заявками</p>
+    </footer>
+
+    <!-- Скрипты -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+    <script src="script.js" defer></script>
+</body>
+</html>
