@@ -1238,7 +1238,7 @@ class OrdersManager {
         } catch (error) {
             console.error('Ошибка при сохранении:', error);
             this.updateSaveStatus('Ошибка сохранения', 'error');
-            this.showNotification('Ошибка при сохранении данных', 'error');
+            this.showNotification('Ошибка сохранения данных', 'error');
         }
     }
 }
@@ -1416,5 +1416,68 @@ window.applyFilters = () => {
         window.ordersManager.applyFilters();
     }
 };
+
+// Функция сохранения данных
+async function saveData() {
+  try {
+    const response = await fetch('/api/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        orders: orders,
+        columnsOrder: columnsOrder
+      })
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(result.error || 'Ошибка сохранения');
+    }
+
+    showNotification('Данные сохранены', 'success');
+  } catch (error) {
+    console.error('Ошибка сохранения:', error);
+    showNotification('Ошибка сохранения: ' + error.message, 'error');
+  }
+}
+
+// Функция загрузки данных
+async function loadData() {
+  try {
+    const response = await fetch('/api/data');
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Ошибка загрузки');
+    }
+
+    if (data.orders) {
+      orders = data.orders;
+    }
+    if (data.columnsOrder) {
+      columnsOrder = data.columnsOrder;
+    }
+
+    renderOrders();
+  } catch (error) {
+    console.error('Ошибка загрузки:', error);
+    showNotification('Ошибка загрузки: ' + error.message, 'error');
+  }
+}
+
+// Добавляем автоматическое сохранение при изменениях
+function onDataChanged() {
+  saveData();
+}
+
+// Загружаем данные при старте
+document.addEventListener('DOMContentLoaded', loadData);
+
+// Добавляем обработчики для кнопок
+document.getElementById('saveButton').addEventListener('click', saveData);
+document.getElementById('loadButton').addEventListener('click', loadData);
 
 // ... остальной код ...
