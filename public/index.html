@@ -14,9 +14,18 @@
     <header>
         <div class="header-content">
             <h1>Таблица заявок</h1>
-            <button id="themeToggle" class="btn theme-toggle" onclick="toggleTheme()">
-                🌙
-            </button>
+            <div class="header-buttons">
+                <!-- Добавляем кнопки управления данными -->
+                <button id="saveButton" class="btn primary" onclick="window.ordersManager.saveOrders()">
+                    💾 Сохранить данные
+                </button>
+                <button id="loadButton" class="btn secondary" onclick="window.ordersManager.loadData()">
+                    📂 Загрузить данные
+                </button>
+                <button id="themeToggle" class="btn theme-toggle" onclick="toggleTheme()">
+                    🌙
+                </button>
+            </div>
         </div>
     </header>
 
@@ -76,9 +85,6 @@
                 <button type="button" onclick="exportToExcel()" class="btn secondary">
                     <svg class="icon" aria-hidden="true"><!-- Иконка экспорта --></svg>
                     Экспорт в Excel
-                </button>
-                <button type="button" onclick="saveToFile()" class="btn secondary">
-                    💾 Сохранить данные
                 </button>
                 <input type="file" 
                        id="loadDataFile" 
@@ -269,6 +275,14 @@
     <footer>
         <p>&copy; 2024 Система управления заявками</p>
     </footer>
+
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Индикатор сохранения -->
+    <div class="save-status" id="saveStatus">
+        <span class="status-text"></span>
+        <div class="status-spinner"></div>
+    </div>
 
     <!-- Скрипты -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>

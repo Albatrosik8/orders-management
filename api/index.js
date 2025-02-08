@@ -22,16 +22,17 @@ app.post('/api/save', async (req, res) => {
       columnsOrder: req.body.columnsOrder || []
     };
 
-    // Используем has для проверки существования ключа
-    const exists = await edge.has('appData');
-    
-    if (exists) {
-      // Если ключ существует, обновляем его
-      await edge.update('appData', data);
-    } else {
-      // Если ключа нет, создаем новый
-      await edge.add('appData', data);
-    }
+    // Используем set для сохранения данных
+    await edge.set([
+      {
+        key: 'orders',
+        value: data.orders
+      },
+      {
+        key: 'columnsOrder',
+        value: data.columnsOrder
+      }
+    ]);
     
     console.log('Данные сохранены');
     res.json({ success: true });
@@ -46,11 +47,18 @@ app.get('/api/data', async (req, res) => {
   try {
     console.log('Загрузка данных...');
     
-    // Получаем все данные одним запросом
-    const data = await edge.get('appData');
-    console.log('Загруженные данные:', data);
+    // Получаем данные
+    const [orders, columnsOrder] = await Promise.all([
+      edge.get('orders'),
+      edge.get('columnsOrder')
+    ]);
+
+    console.log('Загруженные данные:', { orders, columnsOrder });
     
-    res.json(data || { orders: [], columnsOrder: [] });
+    res.json({
+      orders: orders || [],
+      columnsOrder: columnsOrder || []
+    });
 
   } catch (error) {
     console.error('Ошибка загрузки:', error);
