@@ -2,7 +2,7 @@
   "name": "orders-management",
   "version": "1.0.0",
   "description": "Система управления заявками",
-  "main": "server.js",
+  "main": "api/index.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
