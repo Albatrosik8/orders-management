@@ -22,9 +22,12 @@ app.post('/api/save', async (req, res) => {
       columnsOrder: req.body.columnsOrder || []
     };
 
-    // Используем метод для обновления конфигурации
-    await config.setItems({
-      'app_data': JSON.stringify(data)
+    // Используем метод write для сохранения
+    await config.write({
+      items: [{
+        key: 'app_data',
+        value: data
+      }]
     });
     
     console.log('Данные сохранены');
@@ -41,12 +44,12 @@ app.get('/api/data', async (req, res) => {
     console.log('Загрузка данных...');
     
     // Получаем данные
-    const dataStr = await config.get('app_data');
-    const data = dataStr ? JSON.parse(dataStr) : { orders: [], columnsOrder: [] };
+    const data = await config.get('app_data');
+    const defaultData = { orders: [], columnsOrder: [] };
 
-    console.log('Загруженные данные:', data);
+    console.log('Загруженные данные:', data || defaultData);
     
-    res.json(data);
+    res.json(data || defaultData);
 
   } catch (error) {
     console.error('Ошибка загрузки:', error);
