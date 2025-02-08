@@ -7,27 +7,41 @@ app.use(express.json());
 // API routes
 app.post('/api/save', async (req, res) => {
   try {
-    // Сохраняем данные в KV storage
-    await kv.set('ordersData', {
-      orders: req.body.orders,
-      columnsOrder: req.body.columnsOrder
-    });
+    console.log('Начало сохранения:', req.body);
     
+    // Проверяем данные
+    if (!req.body || !req.body.orders) {
+      return res.status(400).json({ error: 'Неверные данные' });
+    }
+
+    // Сохраняем данные напрямую, без JSON.stringify
+    const result = await kv.set('orders_data', {
+      orders: req.body.orders,
+      columnsOrder: req.body.columnsOrder || []
+    });
+
+    console.log('Результат сохранения:', result);
     res.json({ success: true });
+
   } catch (error) {
-    console.error('Save error:', error);
-    res.status(500).json({ error: 'Ошибка при сохранении данных' });
+    console.error('Ошибка сохранения:', error);
+    res.status(500).json({ error: 'Ошибка сохранения' });
   }
 });
 
 app.get('/api/data', async (req, res) => {
   try {
-    // Получаем данные из KV storage
-    const data = await kv.get('ordersData');
+    console.log('Загрузка данных...');
+    
+    // Получаем данные напрямую
+    const data = await kv.get('orders_data');
+    console.log('Загруженные данные:', data);
+
     res.json(data || { orders: [], columnsOrder: [] });
+
   } catch (error) {
-    console.error('Load error:', error);
-    res.status(500).json({ error: 'Ошибка при чтении данных' });
+    console.error('Ошибка загрузки:', error);
+    res.status(500).json({ error: 'Ошибка загрузки' });
   }
 });
 
