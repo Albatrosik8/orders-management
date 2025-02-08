@@ -12,23 +12,30 @@ app.post('/api/save', async (req, res) => {
   try {
     console.log('Сохранение данных:', req.body);
     
-    if (!req.body || !req.body.orders) {
+    if (!req.body || !req.body.orders === undefined) {
       return res.status(400).json({ error: 'Неверные данные' });
     }
 
-    // Сохраняем данные в Edge Config
-    await edge.set('orders', req.body.orders);
-    await edge.set('columnsOrder', req.body.columnsOrder || []);
+    // Сохраняем все данные одним объектом
+    const data = {
+      orders: req.body.orders,
+      columnsOrder: req.body.columnsOrder || []
+    };
+
+    // Используем patch вместо set
+    await edge.patch([
+      {
+        key: 'appData',
+        value: data
+      }
+    ]);
     
     console.log('Данные сохранены');
     res.json({ success: true });
 
   } catch (error) {
     console.error('Ошибка сохранения:', error);
-    res.status(500).json({ 
-      error: 'Ошибка сохранения',
-      details: error.message 
-    });
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -36,25 +43,15 @@ app.get('/api/data', async (req, res) => {
   try {
     console.log('Загрузка данных...');
     
-    // Получаем данные из Edge Config
-    const [orders, columnsOrder] = await Promise.all([
-      edge.get('orders'),
-      edge.get('columnsOrder')
-    ]);
-
-    console.log('Данные загружены:', { orders, columnsOrder });
+    // Получаем все данные одним запросом
+    const data = await edge.get('appData');
+    console.log('Загруженные данные:', data);
     
-    res.json({
-      orders: orders || [],
-      columnsOrder: columnsOrder || []
-    });
+    res.json(data || { orders: [], columnsOrder: [] });
 
   } catch (error) {
     console.error('Ошибка загрузки:', error);
-    res.status(500).json({ 
-      error: 'Ошибка загрузки',
-      details: error.message 
-    });
+    res.status(500).json({ error: error.message });
   }
 });
 
