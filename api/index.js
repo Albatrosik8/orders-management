@@ -5,7 +5,7 @@ const app = express();
 app.use(express.json());
 
 // Создаем клиент Edge Config
-const edge = createClient(process.env.EDGE_CONFIG);
+const config = createClient(process.env.EDGE_CONFIG);
 
 // API routes
 app.post('/api/save', async (req, res) => {
@@ -16,9 +16,16 @@ app.post('/api/save', async (req, res) => {
       return res.status(400).json({ error: 'Неверные данные' });
     }
 
-    // Сохраняем данные по одному
-    await edge.set('orders', JSON.stringify(req.body.orders));
-    await edge.set('columnsOrder', JSON.stringify(req.body.columnsOrder || []));
+    // Сохраняем все данные одним объектом
+    const data = {
+      orders: req.body.orders,
+      columnsOrder: req.body.columnsOrder || []
+    };
+
+    // Используем метод для обновления конфигурации
+    await config.setItems({
+      'app_data': JSON.stringify(data)
+    });
     
     console.log('Данные сохранены');
     res.json({ success: true });
@@ -33,19 +40,13 @@ app.get('/api/data', async (req, res) => {
   try {
     console.log('Загрузка данных...');
     
-    // Получаем и парсим данные
-    const ordersStr = await edge.get('orders');
-    const columnsOrderStr = await edge.get('columnsOrder');
+    // Получаем данные
+    const dataStr = await config.get('app_data');
+    const data = dataStr ? JSON.parse(dataStr) : { orders: [], columnsOrder: [] };
 
-    const orders = ordersStr ? JSON.parse(ordersStr) : [];
-    const columnsOrder = columnsOrderStr ? JSON.parse(columnsOrderStr) : [];
-
-    console.log('Загруженные данные:', { orders, columnsOrder });
+    console.log('Загруженные данные:', data);
     
-    res.json({
-      orders: orders,
-      columnsOrder: columnsOrder
-    });
+    res.json(data);
 
   } catch (error) {
     console.error('Ошибка загрузки:', error);
