@@ -16,23 +16,9 @@ app.post('/api/save', async (req, res) => {
       return res.status(400).json({ error: 'Неверные данные' });
     }
 
-    // Сохраняем все данные одним объектом
-    const data = {
-      orders: req.body.orders,
-      columnsOrder: req.body.columnsOrder || []
-    };
-
-    // Используем set для сохранения данных
-    await edge.set([
-      {
-        key: 'orders',
-        value: data.orders
-      },
-      {
-        key: 'columnsOrder',
-        value: data.columnsOrder
-      }
-    ]);
+    // Сохраняем данные по одному
+    await edge.set('orders', JSON.stringify(req.body.orders));
+    await edge.set('columnsOrder', JSON.stringify(req.body.columnsOrder || []));
     
     console.log('Данные сохранены');
     res.json({ success: true });
@@ -47,17 +33,18 @@ app.get('/api/data', async (req, res) => {
   try {
     console.log('Загрузка данных...');
     
-    // Получаем данные
-    const [orders, columnsOrder] = await Promise.all([
-      edge.get('orders'),
-      edge.get('columnsOrder')
-    ]);
+    // Получаем и парсим данные
+    const ordersStr = await edge.get('orders');
+    const columnsOrderStr = await edge.get('columnsOrder');
+
+    const orders = ordersStr ? JSON.parse(ordersStr) : [];
+    const columnsOrder = columnsOrderStr ? JSON.parse(columnsOrderStr) : [];
 
     console.log('Загруженные данные:', { orders, columnsOrder });
     
     res.json({
-      orders: orders || [],
-      columnsOrder: columnsOrder || []
+      orders: orders,
+      columnsOrder: columnsOrder
     });
 
   } catch (error) {
