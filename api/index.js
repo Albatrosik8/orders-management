@@ -22,10 +22,16 @@ app.post('/api/save', async (req, res) => {
       columnsOrder: req.body.columnsOrder || []
     };
 
-    // Используем set для сохранения
-    await edge.upsert({
-      'appData': data
-    });
+    // Используем has для проверки существования ключа
+    const exists = await edge.has('appData');
+    
+    if (exists) {
+      // Если ключ существует, обновляем его
+      await edge.update('appData', data);
+    } else {
+      // Если ключа нет, создаем новый
+      await edge.add('appData', data);
+    }
     
     console.log('Данные сохранены');
     res.json({ success: true });
